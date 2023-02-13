@@ -1,9 +1,10 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
+	"go-restapi/inernal/repository"
+	"go-restapi/inernal/repository/dbrepo"
 	"log"
 	"net/http"
 )
@@ -13,7 +14,7 @@ const port = 8080
 type application struct {
 	DSN    string
 	Domain string
-	DB     *sql.DB
+	DB     repository.DatabaseRepo
 }
 
 func main() {
@@ -30,8 +31,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app.DB = conn
-	defer app.DB.Close()
+	app.DB = &dbrepo.PostgresDBRepo{Db: conn}
+	defer app.DB.Connection().Close()
 	app.Domain = "localhost"
 	//start the application server
 	log.Println("starting application on port", port)
