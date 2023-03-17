@@ -7,6 +7,7 @@ import (
 	"go-restapi/inernal/models"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
@@ -168,4 +169,41 @@ func (app *application) MovieForEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
+func (app *application) AllGenres(w http.ResponseWriter, r *http.Request) {
+	genres, err := app.DB.AllGenres()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	_ = app.writeJSON(w, http.StatusOK, genres)
+}
+
+func (app *application) InsertMovie(w http.ResponseWriter, r *http.Request) {
+	var movie models.Movie
+	err := app.readJSON(w, r, &movie)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	movie.Image = "/8Z8dptJEypuLoOQro1WugD855YE.jpg"
+	movie.CreatedAt = time.Now()
+	movie.UpdatedAt = time.Now()
+	newID, err := app.DB.InsertMovie(movie)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	err = app.DB.UpdateMovieGenres(newID, movie.GenresArray)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	resp := JSONResponse{
+		Error:   false,
+		Message: "movie updated!",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
 }
